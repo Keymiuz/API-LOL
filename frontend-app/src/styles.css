@@ -1,0 +1,16 @@
+html,
+body {
+  min-height: 100%;
+  margin: 0;
+  background: #0d0b11;
+}
+
+body {
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+app-root {
+  display: block;
+  min-height: 100dvh;
+}

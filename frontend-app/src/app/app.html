@@ -1,0 +1,130 @@
+<main class="page-shell">
+  <section class="hero-panel">
+    <p class="eyebrow">League Matchup Analyzer</p>
+    <h1>Teste suas matchups no navegador com sua API local.</h1>
+    <p class="lead">
+      O frontend consulta a API local, busca as ultimas partidas com o matchup exato na top lane e mostra um recorte
+      rapido de lane, gank pressure e desempenho individual.
+    </p>
+  </section>
+
+  <section class="card">
+    <form [formGroup]="form" (ngSubmit)="submit()" class="form-grid">
+      <label class="field">
+        <span>Game Name</span>
+        <input type="text" formControlName="gameName" placeholder="FullStack Java" />
+      </label>
+
+      <label class="field">
+        <span>Tag Line</span>
+        <input type="text" formControlName="tagLine" placeholder="DEV" />
+      </label>
+
+      <label class="field">
+        <span>Seu campeao</span>
+        <input type="text" formControlName="championA" placeholder="Aatrox" />
+      </label>
+
+      <label class="field">
+        <span>Matchup</span>
+        <input type="text" formControlName="championB" placeholder="Darius" />
+      </label>
+
+      <button class="submit-button" type="submit" [disabled]="loading()">
+        {{ loading() ? 'Analisando...' : 'Analisar matchup' }}
+      </button>
+    </form>
+
+    @if (error()) {
+      <div class="error-banner">{{ error() }}</div>
+    }
+
+    @if (result(); as data) {
+      <div class="results">
+        <p class="meta-line">
+          Conta: {{ data.summoner.gameName }}#{{ data.summoner.tagLine }} | consulta em
+          {{ data.meta.durationMs / 1000 | number: '1.1-1' }}s | {{ data.meta.scannedMatches }} partidas vasculhadas
+          | {{ data.meta.networkMatchFetches }} requests novas para match details
+        </p>
+
+        @if (data.meta.hitNetworkBudget) {
+          <p class="meta-warning">
+            A busca parou no budget seguro da Riot API. Se voce repetir consultas, a cache local deixa as proximas bem
+            mais rapidas.
+          </p>
+        }
+
+        <div class="stat-grid">
+          <article class="stat-card">
+            <span class="stat-label">Partidas encontradas</span>
+            <strong>{{ data.sampledMatches }}</strong>
+          </article>
+
+          <article class="stat-card">
+            <span class="stat-label">Winrate</span>
+            <strong>{{ data.winRate | number: '1.0-2' }}%</strong>
+          </article>
+
+          <article class="stat-card">
+            <span class="stat-label">Filtro</span>
+            <strong>{{ data.filters.championA }} vs {{ data.filters.championB }}</strong>
+          </article>
+        </div>
+
+        @if (data.sampledMatches === 0) {
+          <p class="empty-state">
+            Nenhum jogo desse matchup apareceu no recorte analisado. Tente outro campeao inimigo que voce enfrentou
+            recentemente.
+          </p>
+        }
+
+        @if (data.matches.length > 0) {
+          <div class="matches">
+            @for (match of data.matches; track match.matchId) {
+              <article class="match-card">
+                <div class="match-header">
+                  <div>
+                    <strong>{{ match.playerChampion }} vs {{ match.enemyChampion }}</strong>
+                    <p class="subtle">{{ match.combat.kda }} KDA | {{ match.combat.totalCs }} CS | lvl {{ match.combat.champLevel }}</p>
+                  </div>
+                  <span [class.win]="match.didWin" [class.loss]="!match.didWin">
+                    {{ match.didWin ? 'Vitoria' : 'Derrota' }}
+                  </span>
+                </div>
+
+                <div class="match-meta">
+                  <span>{{ match.gameCreation | date: 'short' }}</span>
+                  <span>{{ match.gameDuration / 60 | number: '1.0-0' }} min</span>
+                  <span>Gold: {{ match.combat.goldEarned }}</span>
+                  <span>Dano: {{ match.combat.damageToChampions }}</span>
+                  <span>Gank prob.: {{ match.gankProbability | number: '1.0-2' }}%</span>
+                </div>
+
+                <div class="lane-grid">
+                  <div>
+                    <span class="lane-label">10 min</span>
+                    <p>Gold: {{ match.laneDiffs.min10?.goldDiff ?? 'n/a' }}</p>
+                    <p>CS: {{ match.laneDiffs.min10?.csDiff ?? 'n/a' }}</p>
+                    <p>XP: {{ match.laneDiffs.min10?.xpDiff ?? 'n/a' }}</p>
+                  </div>
+                  <div>
+                    <span class="lane-label">15 min</span>
+                    <p>Gold: {{ match.laneDiffs.min15?.goldDiff ?? 'n/a' }}</p>
+                    <p>CS: {{ match.laneDiffs.min15?.csDiff ?? 'n/a' }}</p>
+                    <p>XP: {{ match.laneDiffs.min15?.xpDiff ?? 'n/a' }}</p>
+                  </div>
+                  <div>
+                    <span class="lane-label">Contexto</span>
+                    <p>Kills top: {{ match.gankContext.topKillEvents }}</p>
+                    <p>Presenca jg inimiga: {{ match.gankContext.enemyJunglePresenceEvents }}</p>
+                    <p>Vision: {{ match.combat.visionScore }}</p>
+                  </div>
+                </div>
+              </article>
+            }
+          </div>
+        }
+      </div>
+    }
+  </section>
+</main>
