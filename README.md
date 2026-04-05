@@ -236,7 +236,7 @@ O projeto usa `.gitignore` para nao versionar:
 - `.angular`
 - logs temporarios
 
-## Proximos passos sugeridos
+## Proximos passos
 
 - mapear IDs de itens e runas para nomes e icones
 - criar tela de detalhes por partida
